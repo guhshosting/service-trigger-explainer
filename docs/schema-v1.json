@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:service-trigger-explainer:schema:1",
+  "title": "service-trigger-explainer response v1",
+  "type": "object",
+  "required": ["schema_version", "application_version"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "application_version": {"type": "string"},
+    "service": {"$ref": "#/$defs/service"},
+    "trigger_count": {"type": "integer", "minimum": 0},
+    "triggers": {"type": "array", "items": {"$ref": "#/$defs/trigger"}},
+    "warnings": {"$ref": "#/$defs/warnings"},
+    "error": {
+      "type": "object", "additionalProperties": false,
+      "required": ["exit_code", "win32_code", "message"],
+      "properties": {
+        "exit_code": {"type": "integer", "minimum": 2, "maximum": 6},
+        "win32_code": {"type": ["integer", "null"], "minimum": 0},
+        "message": {"type": "string"}
+      }
+    }
+  },
+  "additionalProperties": false,
+  "oneOf": [
+    {"required": ["service", "trigger_count", "triggers", "warnings"], "not": {"required": ["error"]}},
+    {"required": ["error"], "not": {"anyOf": [{"required": ["service"]}, {"required": ["trigger_count"]}, {"required": ["triggers"]}, {"required": ["warnings"]}]}}
+  ],
+  "$defs": {
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "uint32": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+    "service": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "display_name", "account", "service_type", "start_type", "start_type_name", "delayed_auto_start", "current_state", "current_state_name"],
+      "properties": {
+        "name": {"type": "string"}, "display_name": {"type": "string"}, "account": {"type": "string"},
+        "service_type": {"$ref": "#/$defs/uint32"}, "start_type": {"$ref": "#/$defs/uint32"},
+        "start_type_name": {"type": "string"}, "delayed_auto_start": {"type": ["boolean", "null"]},
+        "current_state": {"type": ["integer", "null"], "minimum": 0, "maximum": 4294967295},
+        "current_state_name": {"type": "string"}
+      }
+    },
+    "trigger": {
+      "type": "object", "additionalProperties": false,
+      "required": ["index", "action", "action_name", "type", "type_name", "subtype_guid", "subtype_name", "explanation", "data_items", "warnings"],
+      "properties": {
+        "index": {"type": "integer", "minimum": 1},
+        "action": {"$ref": "#/$defs/uint32"}, "action_name": {"type": "string"},
+        "type": {"$ref": "#/$defs/uint32"}, "type_name": {"type": "string"},
+        "subtype_guid": {"type": ["string", "null"], "pattern": "^\\{[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}\\}$"},
+        "subtype_name": {"type": ["string", "null"]}, "explanation": {"type": "string"},
+        "data_items": {"type": "array", "items": {"$ref": "#/$defs/data"}}, "warnings": {"$ref": "#/$defs/warnings"}
+      }
+    },
+    "data": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "type_name", "byte_count", "raw_hex", "strings", "unsigned_value", "warnings"],
+      "properties": {
+        "type": {"$ref": "#/$defs/uint32"}, "type_name": {"type": "string"},
+        "byte_count": {"type": "integer", "minimum": 0}, "raw_hex": {"type": "string", "pattern": "^([0-9a-f]{2})*$"},
+        "strings": {"type": "array", "items": {"type": "string"}},
+        "unsigned_value": {"type": ["string", "null"], "pattern": "^(0|[1-9][0-9]*)$"},
+        "warnings": {"$ref": "#/$defs/warnings"}
+      }
+    }
+  }
+}
